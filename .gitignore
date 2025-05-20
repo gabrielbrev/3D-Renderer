@@ -1,0 +1,68 @@
+# Compiled object files
+*.o
+*.obj
+
+# Compiled static libraries
+*.a
+*.lib
+
+# Compiled dynamic libraries
+*.so
+*.so.*
+*.dll
+*.dylib
+
+# Executáveis
+*.exe
+*.out
+*.app
+
+# Arquivos de dependência gerados
+*.d
+
+# Diretórios comuns de build
+/build/
+/bin/
+/dist/
+/Debug/
+/Release/
+
+# Arquivos do editor/IDE
+*.swp
+*~
+*.bak
+*.tmp
+
+# Arquivos do Code::Blocks
+*.depend
+*.layout
+*.cbp
+*.workspace
+
+# Arquivos do CLion
+.idea/
+cmake-build-*/
+
+# Arquivos do VSCode
+.vscode/
+
+# Arquivos de log
+*.log
+
+# Arquivos de teste temporários
+*.gcda
+*.gcno
+*.gcov
+
+# Makefile gerado por IDE ou CMake (opcional)
+Makefile
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Arquivos de tags (ctags, etags)
+tags
+TAGS
+
+# Arquivos macOS
+.DS_Store
