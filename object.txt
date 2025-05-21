@@ -1,3 +1,5 @@
+Objeto em formato de diamante
+
 VERTICES:
 V1   (  0.00,  3.00,  2.00)
 V2   (  1.90,  3.00,  0.62)
