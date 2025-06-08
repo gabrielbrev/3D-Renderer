@@ -2,7 +2,6 @@
 #define QUATERNION_H
 
 #include "vector.h"
-#include "point.h"
 #include "utils.h"
 
 typedef union {
@@ -10,12 +9,12 @@ typedef union {
     float data[4];
 } Quaternion;
 
-Quaternion vecToQuaternion(Vector vector);
-Quaternion pointToQuaternion(Point point);
-Quaternion createRotationQuaternion(Vector vector, float radians);
-Quaternion multiply(Quaternion a, Quaternion b);
-Quaternion getConjugate(Quaternion quaternion);
-Vector rotateVector(Vector target, Vector axis, float degrees);
-Point rotatePoint(Point target, Vector axis, float degrees);
+Quaternion vecToQuaternion(const Vector *vector);
+Quaternion pointToQuaternion(const Point *point);
+Quaternion createRotationQuaternion(const Vector *vector, float radians);
+Quaternion multiply(const Quaternion *a, const Quaternion *b);
+Quaternion getConjugate(const Quaternion *quaternion);
+Vector rotateVector(const Vector *target, const Vector *axis, float degrees);
+Point rotatePoint(const Point *target, const Vector *axis, float degrees);
 
 #endif

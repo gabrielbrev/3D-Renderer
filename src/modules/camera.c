@@ -2,8 +2,13 @@
 #include "utils.h"
 #include "quaternion.h"
 #include "camera.h"
+#include "mesh.h"
+#include "color.h"
 
 #include <math.h>
+
+const int CAMERA_MODE_FILL = 0;
+const int CAMERA_MODE_WIREFRAME = 1;
 
 void updateViewMatrix(Camera *camera) {
     float translation_matrix[4][4] = {
@@ -23,22 +28,43 @@ void updateViewMatrix(Camera *camera) {
     multiplyMatrices4x4(camera->view_matrix, rotation_matrix, translation_matrix);
 }
 
-void updateCoordinateSystem(Camera *camera, Vector normal) {
-    camera->v = normalize(rejectFrom(camera->n, camera->up));
-    camera->u = normalize(crossProduct(camera->n, camera->v));
-
+void updateCoordinateSystem(Camera *camera, const Vector *normal) {
+    camera->v = normalize(rejectFrom(normal, &camera->up));
+    camera->u = normalize(crossProduct(normal, &camera->v));
     updateViewMatrix(camera);
 }
 
-void initCamera(Camera *camera, Point eye, Point at, Vector up) {
-    camera->x = eye.x;
-    camera->y = eye.y;
-    camera->z = eye.z;
+void initCamera(Camera *camera, SDL_Renderer *renderer, SDL_Window *window, const Point *eye, const Point *at, const Vector *up) {
+    SDL_GetWindowSize(window, &camera->width, &camera->height);
+    camera->window = window;
+    camera->renderer = renderer;
+    camera->texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        camera->width,
+        camera->height
+    );
 
-    camera->up = up;
-    camera->n = normalize(createVector(eye, at));
-    updateCoordinateSystem(camera, camera->n);
+    camera->mode = CAMERA_MODE_FILL;
+
+    if (!camera->texture) {
+        printf("Erro ao criar textura: %s\n", SDL_GetError());
+        return;
+    }
+    camera->x = eye->x;
+    camera->y = eye->y;
+    camera->z = eye->z;
+
+    camera->up = *up;
+    camera->n = normalize(createVector(*eye, *at));
+    updateCoordinateSystem(camera, &camera->n);
 }
+
+void cycleCameraMode(Camera *camera) {
+    camera->mode = (camera->mode + 1) % 2;
+}
+
 
 void moveCamera(Camera *camera, float dx, float dy, float dz) {
     if (dx) {
@@ -62,28 +88,122 @@ void rotateCamera(Camera *camera, float dx_degrees, float dy_degrees) {
     float x_radians = dx_degrees * (PI / 180);
     float y_radians = dy_degrees * (PI / 180);
 
-    float x_rotation_matrix[4][4] = {
-        {cos(x_radians), -sin(x_radians), 0, 0},
-        {sin(x_radians), cos(x_radians), 0, 0},
-        {0, 0, 1, 0},
-        {0, 0, 0, 0}
-    };
-
-    float y_rotation_matrix[4][4] = {
-        {cos(y_radians), 0, sin(y_radians), 0},
-        {0, 1, 0, 0},
-        {-sin(y_radians), 0, cos(y_radians), 0},
-        {0, 0, 0, 0}
-    };
-
     if (dx_degrees) {
-        camera->n = rotateVector(camera->n, camera->u, dx_degrees);
+        camera->n = rotateVector(&camera->n, &camera->u, dx_degrees);
     }
 
     if (dy_degrees) {
-        camera->n = multiplyMatrixVector(y_rotation_matrix, camera->n);
+        camera->n = rotateVector(&camera->n, &camera->up, dy_degrees);
     }
 
-    updateCoordinateSystem(camera, camera->n);
+    updateCoordinateSystem(camera, &camera->n);
+}
+
+Point projectPerspective(const Point *p, float f) {
+    Point proj = *p;
+    float w = -(proj.z / f); 
+
+    if (w != 0) {
+        proj.x /= w;
+        proj.y /= w;
+    }
+
+    proj.x *= 50;
+    proj.y *= 50;
+
+    proj.x += 800 / 2;
+    proj.y += 600 / 2;
+
+    return proj;
+}
+
+void renderObject(Camera *camera, Mesh *mesh) {
+    Point projected_points[mesh->num_vertices];
+    
+    for (int i = 0; i < mesh->num_vertices; i++) {
+        Point p = mesh->vertices[i];
+
+        p = rotatePoint(&p, &(Vector){1, 0, 0}, mesh->angle_x);
+        p = rotatePoint(&p, &(Vector){0, 1, 0}, mesh->angle_y);
+        p = rotatePoint(&p, &(Vector){0, 0, 1}, mesh->angle_z);
+        p = multiplyMatrixVector(camera->view_matrix, &p);
+        p = projectPerspective(&p, 4);
+
+        projected_points[i] = p;
+    }
+    
+    float zbuffer[camera->width][camera->height];
+    for (int i = 0; i < camera->width; i++) {
+        for (int j = 0; j < camera->height; j++) {
+            zbuffer[i][j] = INFINITY;
+        }
+    }
+
+    void* pixels = NULL;
+    int pitch = 0;
+    SDL_LockTexture(camera->texture, NULL, &pixels, &pitch);
+    Uint32* pixel_data = (Uint32*)pixels;
+    
+    for (int i = 0; i < mesh->num_faces; i++) {
+        Triangle face = mesh->faces[i];
+        
+        switch (camera->mode) {
+            case CAMERA_MODE_FILL:
+                Point a = projected_points[face.vertices[0]];
+                Point b = projected_points[face.vertices[1]];
+                Point c = projected_points[face.vertices[2]];
+
+                SDL_Rect boundingRect = getBoundingRect(&a, &b, &c);
+                int minX = maxInt(0, boundingRect.x);
+                int minY = maxInt(0, boundingRect.y);
+                int maxX = minInt(camera->width, boundingRect.x + boundingRect.w);
+                int maxY = minInt(camera->height, boundingRect.y + boundingRect.h);
+                Uint32 color = HSVtoUint32(&face.color);
+                
+                for (int x = minX; x <maxX; x++) {
+                    for (int y = minY; y < maxY; y++) {
+                        Point p = {x, y};
+                        Vector v0 = subtract(&b, &a);
+                        Vector v1 = subtract(&c, &a);
+                        Vector v2 = subtract(&p, &a);
+                        
+                        float d00 = dot2D(&v0, &v0);
+                        float d01 = dot2D(&v0, &v1);
+                        float d11 = dot2D(&v1, &v1);
+                        float d20 = dot2D(&v2, &v0);
+                        float d21 = dot2D(&v2, &v1);
+                        
+                        float denom = d00 * d11 - d01 * d01;
+                        float v = (d11 * d20 - d01 * d21) / denom;
+                        float w = (d00 * d21 - d01 * d20) / denom;
+                        float u = 1 - v - w;
+
+                        if (v >= 0 && w >= 0 && u >= 0) {
+                            float z = u * a.z + v * b.z + w * c.z;
+
+                            if (x >= 0 && x < camera->width && y >= 0 && y < camera->height && z < zbuffer[x][y]) {
+                                zbuffer[x][y] = z;
+                                pixel_data[y * (pitch / 4) + x] = color;
+                            }
+                        }
+                    }
+                }
+
+                break;
+
+            case CAMERA_MODE_WIREFRAME:    
+                for (int j = 0; j < 3; j++) {
+                    Point p1 = projected_points[face.vertices[j]];
+                    Point p2 = projected_points[face.vertices[(j + 1) % 3]];
+                    SDL_RenderLine(camera->renderer, p1.x, p1.y, p2.x, p2.y);
+                }  
+
+                break;
+        }    
+        
+    }
+    
+    SDL_UnlockTexture(camera->texture);
+    SDL_RenderTexture(camera->renderer, camera->texture, NULL, NULL);
 }
 
