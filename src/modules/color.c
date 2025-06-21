@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-ColorRGB HSVtoRGB(const ColorHSV *hsv) {
+ColorRGB HSVtoRGB(const ColorHSV *hsv, float intensity) {
     ColorRGB rgb;
     float h = hsv->h;
     float s = hsv->s;
@@ -34,15 +34,15 @@ ColorRGB HSVtoRGB(const ColorHSV *hsv) {
         r = c; g = 0; b = x;
     }
 
-    rgb.r = (int)((r + m) * 255);
-    rgb.g = (int)((g + m) * 255);
-    rgb.b = (int)((b + m) * 255);
+    rgb.r = (int)((r + m) * 255) * intensity;
+    rgb.g = (int)((g + m) * 255) * intensity;
+    rgb.b = (int)((b + m) * 255) * intensity;
 
     return rgb;
 }
 
-Uint32 HSVtoUint32(const ColorHSV *hsv) {
-    ColorRGB rgb = HSVtoRGB(hsv);
+Uint32 HSVtoUint32(const ColorHSV *hsv, float intensity) {
+    ColorRGB rgb = HSVtoRGB(hsv, intensity);
     Uint32 color = (0xFF << 24) | (rgb.r << 16) | (rgb.g << 8) | rgb.b;
     return color;
 }  

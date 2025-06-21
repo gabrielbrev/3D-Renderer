@@ -8,14 +8,16 @@ typedef union {
 
 typedef Vector Point;
 
-Vector createVector(Point origin, Point destination);
+Vector createVector(const Point *origin, const Point *destination);
 float dot(const Vector *a, const Vector *b);
 float dot2D(const Vector *a, const Vector *b);
+float magnitude(const Vector *v);
+float getAngle(const Vector *a, const Vector *b);
 Vector subtract(const Vector *a, const Vector *b);
 Vector scalarMultiply(float num, const Vector *v);
 Vector rejectFrom(const Vector *direction, const Vector *vector);
 Vector crossProduct(const Vector *a, const Vector *b);
-Vector normalize(Vector v);
+Vector normalize(const Vector *v);
 Vector multiplyMatrixVector(float m[4][4], const Vector *p);
 
 #endif

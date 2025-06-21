@@ -5,6 +5,11 @@
 #include "vector.h"
 
 typedef struct {
+    float ambient_reflectivity;
+    float diffuse_reflectivity;
+} Material;
+
+typedef struct {
     Point *vertices;
     int num_vertices;
     Triangle *faces;
@@ -12,8 +17,9 @@ typedef struct {
     float angle_x;
     float angle_y;
     float angle_z;
+    Material material;
 } Mesh;
 
-Mesh createMesh(Point *points, Triangle *faces, int num_points, int num_faces);
+Mesh createMesh(Point *points, Triangle *faces, int num_points, int num_faces, Material material);
 
 #endif

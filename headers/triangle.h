@@ -12,5 +12,7 @@ typedef struct {
 } Triangle;
 
 SDL_Rect getBoundingRect(const Point *a, const Point *b, const Point *c);
+Vector getNormal(const Point *a, const Point *b, const Point *c);
+Point getCentroid(const Point *a, const Point *b, const Point *c);
 
 #endif

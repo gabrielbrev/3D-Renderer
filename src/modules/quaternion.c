@@ -13,7 +13,7 @@ Quaternion pointToQuaternion(const Point* point) {
 }
 
 Quaternion createRotationQuaternion(const Vector* vector, float radians) {
-    Vector normalized = normalize(*vector);
+    Vector normalized = normalize(vector);
     float sin_radians = sinf(radians / 2);
     return (Quaternion) {cosf(radians / 2), sin_radians * normalized.x, sin_radians * normalized.y, sin_radians * normalized.z};
 }

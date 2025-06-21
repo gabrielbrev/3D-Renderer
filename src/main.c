@@ -2,6 +2,7 @@
 #include "quaternion.h"
 #include "mesh.h"
 #include "triangle.h"
+#include "light_source.h"
 
 #include <SDL3/SDL.h>
 #include <stdio.h>
@@ -24,7 +25,7 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
-    Mesh obj = createMesh(
+    Mesh obj1 = createMesh(
         (Point[]) {
             {  0.00,  3.00,  2.00 },  
             {  1.90,  3.00,  0.62 },  
@@ -39,36 +40,86 @@ int main(int argc, char* argv[]) {
             {  0.00, -2.50,  0.00 }   
         },
         (Triangle[]) {
-            {{0, 1, 2}, {0, 1, 1}},
-            {{0, 2, 3}, {0, 1, 1}},
-            {{0, 3, 4}, {0, 1, 1}},
+            {{0, 1, 2}, {170, 0.7, 1}},
+            {{0, 2, 3}, {170, 0.7, 1}},
+            {{0, 3, 4}, {170, 0.7, 1}},
 
-            {{0, 5, 6}, {0, 1, 1}},
-            {{0, 6, 1}, {0, 1, 1}},
+            {{0, 5, 6}, {170, 0.7, 1}},
+            {{0, 6, 1}, {170, 0.7, 1}},
 
-            {{1, 6, 7}, {0, 1, 1}},
-            {{1, 7, 2}, {0, 1, 1}},
+            {{1, 6, 7}, {170, 0.7, 1}},
+            {{1, 7, 2}, {170, 0.7, 1}},
 
-            {{2, 7, 8}, {0, 1, 1}},
-            {{2, 8, 3}, {0, 1, 1}},
+            {{2, 7, 8}, {170, 0.7, 1}},
+            {{2, 8, 3}, {170, 0.7, 1}},
 
-            {{3, 8, 9}, {0, 1, 1}},
-            {{3, 9, 4}, {0, 1, 1}},
+            {{3, 8, 9}, {170, 0.7, 1}},
+            {{3, 9, 4}, {170, 0.7, 1}},
 
-            {{4, 9, 5}, {0, 1, 1}},
-            {{4, 5, 0}, {0, 1, 1}},
+            {{4, 9, 5}, {170, 0.7, 1}},
+            {{4, 5, 0}, {170, 0.7, 1}},
             
-            {{9, 10, 5}, {0, 1, 1}},
+            {{9, 10, 5}, {170, 0.7, 1}},
 
-            {{5, 10, 6}, {0, 1, 1}},
+            {{5, 10, 6}, {170, 0.7, 1}},
 
-            {{6, 10, 7}, {0, 1, 1}},
+            {{6, 10, 7}, {170, 0.7, 1}},
 
-            {{7, 10, 8}, {0, 1, 1}},
+            {{7, 10, 8}, {170, 0.7, 1}},
 
-            {{8, 10, 9}, {0, 1, 1}},
+            {{8, 10, 9}, {170, 0.7, 1}},
         },
-        11, 18);
+        11, 18, (Material) {0.4, 0.8});
+
+    Mesh obj2 = createMesh(
+        (Point[]) {
+            {  0.00 - 6,  3.00,  2.00 - 6 },  
+            {  1.90 - 6,  3.00,  0.62 - 6 },  
+            {  1.18 - 6,  3.00, -1.62 - 6 },  
+            { -1.18 - 6,  3.00, -1.62 - 6 },  
+            { -1.90 - 6,  3.00,  0.62 - 6 },  
+            {  0.00 - 6,  1.75,  3.50 - 6 },  
+            {  3.33 - 6,  1.75,  1.08 - 6 },  
+            {  2.06 - 6,  1.75, -2.83 - 6 },  
+            { -2.06 - 6,  1.75, -2.83 - 6 },  
+            { -3.33 - 6,  1.75,  1.08 - 6 },  
+            {  0.00 - 6, -2.50,  0.00 - 6 }   
+        },
+        (Triangle[]) {
+            {{0, 1, 2}, {345, 0.9, 1}},
+            {{0, 2, 3}, {345, 0.9, 1}},
+            {{0, 3, 4}, {345, 0.9, 1}},
+
+            {{0, 5, 6}, {345, 0.9, 1}},
+            {{0, 6, 1}, {345, 0.9, 1}},
+
+            {{1, 6, 7}, {345, 0.9, 1}},
+            {{1, 7, 2}, {345, 0.9, 1}},
+
+            {{2, 7, 8}, {345, 0.9, 1}},
+            {{2, 8, 3}, {345, 0.9, 1}},
+
+            {{3, 8, 9}, {345, 0.9, 1}},
+            {{3, 9, 4}, {345, 0.9, 1}},
+
+            {{4, 9, 5}, {345, 0.9, 1}},
+            {{4, 5, 0}, {345, 0.9, 1}},
+            
+            {{9, 10, 5}, {345, 0.9, 1}},
+
+            {{5, 10, 6}, {345, 0.9, 1}},
+
+            {{6, 10, 7}, {345, 0.9, 1}},
+
+            {{7, 10, 8}, {345, 0.9, 1}},
+
+            {{8, 10, 9}, {345, 0.9, 1}},
+        },
+        11, 18, (Material) {0.4, 0.8});
+        
+    Mesh *meshes[] = { &obj1, &obj2 };
+
+    LightSource light = { {5, 7, 3}, 1.0f, 0.3f, 0.001f, 0.001f, 1.0f };
 
     Camera camera;
     initCamera(&camera, renderer, window, &(Point) {10, 5, 0}, &(Point) {0, 0, 0}, &(Vector) {0, 1, 0});
@@ -141,18 +192,6 @@ int main(int argc, char* argv[]) {
         if (state[SDL_SCANCODE_LSHIFT]) {
             moveCamera(&camera, 0, -CAMERA_MOVEMENT_SPEED * delta_time, 0);
         }
-        if (state[SDL_SCANCODE_UP]) {
-            rotateCamera(&camera, CAMERA_ROTATION_SPEED * delta_time, 0);
-        }
-        if (state[SDL_SCANCODE_DOWN]) {
-            rotateCamera(&camera, -CAMERA_ROTATION_SPEED * delta_time, 0);
-        }
-        if (state[SDL_SCANCODE_LEFT]) {
-            rotateCamera(&camera, 0, -CAMERA_ROTATION_SPEED * delta_time);
-        }
-        if (state[SDL_SCANCODE_RIGHT]) {
-            rotateCamera(&camera, 0, CAMERA_ROTATION_SPEED * delta_time);
-        }
 
         float dx, dy;
         SDL_GetRelativeMouseState(&dx, &dy);
@@ -160,29 +199,19 @@ int main(int argc, char* argv[]) {
             rotateCamera(&camera, -dy, dx);
         }
 
-        obj.angle_y += OBJECT_ROTAION_SPEED * delta_time;
-        color_counter += COLOR_ROTATION_SPEED * delta_time;
+        // obj1.angle_y += OBJECT_ROTAION_SPEED * delta_time;
+        // obj2.angle_y -= OBJECT_ROTAION_SPEED * delta_time;
 
-        for (int i = 0; i < obj.num_faces; i++) {
-            int modifier;
-            if (i < 3) {
-                modifier = 0;
-            } else if (i < 13) {
-                modifier = (i - 1) / 2;
-            } else {
-                modifier = i - 7;
-            }
-
-            Triangle *face = &obj.faces[i];
-            face->color.h = 360 * (modifier + color_counter) / (obj.num_faces + 1);
-        }
+        light.pos.x = camera.pos.x;
+        light.pos.y = camera.pos.y;
+        light.pos.z = camera.pos.z;
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-        renderObject(&camera, &obj);
+        renderObject(&camera, meshes, 2, &light);
 
         SDL_RenderPresent(renderer);
     }

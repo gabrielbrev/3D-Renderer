@@ -10,3 +10,19 @@ SDL_Rect getBoundingRect(const Point *a, const Point *b, const Point *c) {
 
     return (SDL_Rect) {x, y, w, h};
 }
+
+Vector getNormal(const Point *a, const Point *b, const Point *c) {
+    Vector u = createVector(a, b);
+    Vector v = createVector(a, c);
+
+    Vector normal = crossProduct(&v, &u);
+    return normalize(&normal);
+}
+
+Point getCentroid(const Point *a, const Point *b, const Point *c) {
+    Point center;
+    center.x = (a->x + b->x + c->x) / 3.0f;
+    center.y = (a->y + b->y + c->y) / 3.0f;
+    center.z = (a->z + b->z + c->z) / 3.0f;
+    return center;
+}

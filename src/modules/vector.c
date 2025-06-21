@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 
-Vector createVector(Point origin, Point destination) {
-    Vector v = {destination.x - origin.x, destination.y - origin.y, destination.z - origin.z};
+Vector createVector(const Point *origin, const Point *destination) {
+    Vector v = {destination->x - origin->x, destination->y - origin->y, destination->z - origin->z};
     return v;
 }
 
@@ -24,6 +24,14 @@ float dot2D(const Vector *a, const Vector *b) {
     return a->x * b->x + a->y * b->y;
 }
 
+float magnitude(const Vector *v) {
+    return sqrtf(powf(v->x, 2) + powf(v->y, 2) + powf(v->z, 2));
+}
+
+float getAngle(const Vector *a, const Vector *b) {
+    return acosf(dot(a, b) / (magnitude(a) * magnitude(b)));
+}
+
 Vector subtract(const Vector *a, const Vector *b) {
     Vector result = {a->x - b->x, a->y - b->y, a->z - b->z};
     return result;
@@ -32,6 +40,7 @@ Vector subtract(const Vector *a, const Vector *b) {
 Vector rejectFrom(const Vector *direction, const Vector *vector) {
     float d = dot(direction, direction);
     if (d == 0) return (Vector){0,0,0};
+
     Vector proj = scalarMultiply(dot(direction, vector) / d, direction);
     Vector result = subtract(vector, &proj);
     return result;
@@ -50,15 +59,15 @@ Vector crossProduct(const Vector *a, const Vector *b) {
     return result;
 }
 
-Vector normalize(Vector v) {
-    float length = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+Vector normalize(const Vector *v) {
+    float length = magnitude(v);
 
     if (length == 0) {
         printf("Warning: trying to normalize null vector");
         return (Vector) {0, 0, 0};
     }
 
-    Vector result = { v.x / length, v.y / length, v.z / length };
+    Vector result = { v->x / length, v->y / length, v->z / length };
     return result;
 }
 

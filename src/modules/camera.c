@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "mesh.h"
 #include "color.h"
+#include "light_source.h"
 
 #include <math.h>
 
@@ -12,9 +13,9 @@ const int CAMERA_MODE_WIREFRAME = 1;
 
 void updateViewMatrix(Camera *camera) {
     float translation_matrix[4][4] = {
-        {1, 0, 0, -camera->x},
-        {0, 1, 0, -camera->y},
-        {0, 0, 1, -camera->z},
+        {1, 0, 0, -camera->pos.x},
+        {0, 1, 0, -camera->pos.y},
+        {0, 0, 1, -camera->pos.z},
         {0, 0, 0, 1}
     };
 
@@ -29,8 +30,12 @@ void updateViewMatrix(Camera *camera) {
 }
 
 void updateCoordinateSystem(Camera *camera, const Vector *normal) {
-    camera->v = normalize(rejectFrom(normal, &camera->up));
-    camera->u = normalize(crossProduct(normal, &camera->v));
+    camera->v = rejectFrom(normal, &camera->up);
+    camera->v = normalize(&camera->v);
+    
+    camera->u = crossProduct(normal, &camera->v);
+    camera->u = normalize(&camera->u);
+    
     updateViewMatrix(camera);
 }
 
@@ -52,12 +57,14 @@ void initCamera(Camera *camera, SDL_Renderer *renderer, SDL_Window *window, cons
         printf("Erro ao criar textura: %s\n", SDL_GetError());
         return;
     }
-    camera->x = eye->x;
-    camera->y = eye->y;
-    camera->z = eye->z;
+    camera->pos.x = eye->x;
+    camera->pos.y = eye->y;
+    camera->pos.z = eye->z;
 
     camera->up = *up;
-    camera->n = normalize(createVector(*eye, *at));
+    Vector n = createVector(eye, at);
+    camera->n = normalize(&n);
+
     updateCoordinateSystem(camera, &camera->n);
 }
 
@@ -68,17 +75,17 @@ void cycleCameraMode(Camera *camera) {
 
 void moveCamera(Camera *camera, float dx, float dy, float dz) {
     if (dx) {
-        camera->x += camera->u.x * dx;
-        camera->z += camera->u.z * dx;
+        camera->pos.x += camera->u.x * dx;
+        camera->pos.z += camera->u.z * dx;
     }
 
     if (dy) {
-        camera->y += camera->v.y * dy;
+        camera->pos.y += camera->v.y * dy;
     }
 
     if (dz) {
-        camera->x += camera->n.x * dz;
-        camera->z += camera->n.z * dz;
+        camera->pos.x += camera->n.x * dz;
+        camera->pos.z += camera->n.z * dz;
     }
 
     updateViewMatrix(camera);
@@ -117,21 +124,7 @@ Point projectPerspective(const Point *p, float f) {
     return proj;
 }
 
-void renderObject(Camera *camera, Mesh *mesh) {
-    Point projected_points[mesh->num_vertices];
-    
-    for (int i = 0; i < mesh->num_vertices; i++) {
-        Point p = mesh->vertices[i];
-
-        p = rotatePoint(&p, &(Vector){1, 0, 0}, mesh->angle_x);
-        p = rotatePoint(&p, &(Vector){0, 1, 0}, mesh->angle_y);
-        p = rotatePoint(&p, &(Vector){0, 0, 1}, mesh->angle_z);
-        p = multiplyMatrixVector(camera->view_matrix, &p);
-        p = projectPerspective(&p, 4);
-
-        projected_points[i] = p;
-    }
-    
+void renderObject(Camera *camera, Mesh **meshes, int num_meshes, LightSource *light) {
     float zbuffer[camera->width][camera->height];
     for (int i = 0; i < camera->width; i++) {
         for (int j = 0; j < camera->height; j++) {
@@ -143,29 +136,57 @@ void renderObject(Camera *camera, Mesh *mesh) {
     int pitch = 0;
     SDL_LockTexture(camera->texture, NULL, &pixels, &pitch);
     Uint32* pixel_data = (Uint32*)pixels;
-    
-    for (int i = 0; i < mesh->num_faces; i++) {
-        Triangle face = mesh->faces[i];
-        
-        switch (camera->mode) {
-            case CAMERA_MODE_FILL:
-                Point a = projected_points[face.vertices[0]];
-                Point b = projected_points[face.vertices[1]];
-                Point c = projected_points[face.vertices[2]];
 
-                SDL_Rect boundingRect = getBoundingRect(&a, &b, &c);
+    for (int mesh_idx = 0; mesh_idx < num_meshes; mesh_idx++) {
+        Mesh *mesh = meshes[mesh_idx];
+        
+        Point transformed_points[mesh->num_vertices];
+        Point projected_points[mesh->num_vertices];
+        
+        for (int i = 0; i < mesh->num_vertices; i++) {
+            Point p = mesh->vertices[i];
+            
+            p = rotatePoint(&p, &(Vector){1, 0, 0}, mesh->angle_x);
+            p = rotatePoint(&p, &(Vector){0, 1, 0}, mesh->angle_y);
+            p = rotatePoint(&p, &(Vector){0, 0, 1}, mesh->angle_z);
+            transformed_points[i] = p;
+            
+            p = multiplyMatrixVector(camera->view_matrix, &p);
+            p = projectPerspective(&p, 4);
+            projected_points[i] = p;
+        }
+        
+        for (int i = 0; i < mesh->num_faces; i++) {
+            Triangle face = mesh->faces[i];
+            
+            switch (camera->mode) {
+                case CAMERA_MODE_FILL:
+                Point *a = &projected_points[face.vertices[0]];
+                Point *b = &projected_points[face.vertices[1]];
+                Point *c = &projected_points[face.vertices[2]];
+                
+                float light_intensity = getFaceLightIntensity(
+                    light, 
+                    &transformed_points[face.vertices[0]], 
+                    &transformed_points[face.vertices[1]], 
+                    &transformed_points[face.vertices[2]], 
+                    &mesh->material
+                );
+                
+                // Rasterização
+                SDL_Rect boundingRect = getBoundingRect(a, b, c);
                 int minX = maxInt(0, boundingRect.x);
                 int minY = maxInt(0, boundingRect.y);
                 int maxX = minInt(camera->width, boundingRect.x + boundingRect.w);
                 int maxY = minInt(camera->height, boundingRect.y + boundingRect.h);
-                Uint32 color = HSVtoUint32(&face.color);
+                Uint32 color = HSVtoUint32(&face.color, light_intensity);
                 
-                for (int x = minX; x <maxX; x++) {
+                for (int x = minX; x < maxX; x++) {
                     for (int y = minY; y < maxY; y++) {
                         Point p = {x, y};
-                        Vector v0 = subtract(&b, &a);
-                        Vector v1 = subtract(&c, &a);
-                        Vector v2 = subtract(&p, &a);
+                        Vector v0 = subtract(b, a);
+                        Vector v1 = subtract(c, a);
+                        Vector v2 = subtract(&p, a);
                         
                         float d00 = dot2D(&v0, &v0);
                         float d01 = dot2D(&v0, &v1);
@@ -177,10 +198,10 @@ void renderObject(Camera *camera, Mesh *mesh) {
                         float v = (d11 * d20 - d01 * d21) / denom;
                         float w = (d00 * d21 - d01 * d20) / denom;
                         float u = 1 - v - w;
-
+                        
                         if (v >= 0 && w >= 0 && u >= 0) {
-                            float z = u * a.z + v * b.z + w * c.z;
-
+                            float z = u * a->z + v * b->z + w * c->z;
+                            
                             if (x >= 0 && x < camera->width && y >= 0 && y < camera->height && z < zbuffer[x][y]) {
                                 zbuffer[x][y] = z;
                                 pixel_data[y * (pitch / 4) + x] = color;
@@ -188,19 +209,19 @@ void renderObject(Camera *camera, Mesh *mesh) {
                         }
                     }
                 }
-
+                
                 break;
-
-            case CAMERA_MODE_WIREFRAME:    
+                
+                case CAMERA_MODE_WIREFRAME:    
                 for (int j = 0; j < 3; j++) {
                     Point p1 = projected_points[face.vertices[j]];
                     Point p2 = projected_points[face.vertices[(j + 1) % 3]];
                     SDL_RenderLine(camera->renderer, p1.x, p1.y, p2.x, p2.y);
                 }  
-
+                
                 break;
-        }    
-        
+            }    
+        }
     }
     
     SDL_UnlockTexture(camera->texture);
