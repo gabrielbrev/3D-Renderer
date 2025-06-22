@@ -9,7 +9,7 @@ ColorRGB HSVtoRGB(const ColorHSV *hsv, float intensity) {
     float v = hsv->v;
 
     if (s == 0.0f) {
-        rgb.r = rgb.g = rgb.b = (int)(v * 255);
+        rgb.r = rgb.g = rgb.b = (int)(v * 255 * intensity);
         return rgb;
     }
 
@@ -34,9 +34,9 @@ ColorRGB HSVtoRGB(const ColorHSV *hsv, float intensity) {
         r = c; g = 0; b = x;
     }
 
-    rgb.r = (int)((r + m) * 255) * intensity;
-    rgb.g = (int)((g + m) * 255) * intensity;
-    rgb.b = (int)((b + m) * 255) * intensity;
+    rgb.r = (int)((r + m) * 255 * intensity);
+    rgb.g = (int)((g + m) * 255 * intensity);
+    rgb.b = (int)((b + m) * 255 * intensity);
 
     return rgb;
 }

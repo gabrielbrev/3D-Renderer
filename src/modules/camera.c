@@ -124,7 +124,7 @@ Point projectPerspective(const Point *p, float f) {
     return proj;
 }
 
-void renderObject(Camera *camera, Mesh **meshes, int num_meshes, LightSource *light) {
+void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *light) {
     float zbuffer[camera->width][camera->height];
     for (int i = 0; i < camera->width; i++) {
         for (int j = 0; j < camera->height; j++) {
