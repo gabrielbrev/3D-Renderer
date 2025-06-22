@@ -41,7 +41,7 @@ cd 3D-Renderer
 
 ### 2. Clone o SDL3 como subdiretório
 
-Este projeto não inclui o SDL3 como submódulo. Você precisa cloná-lo manualmente:
+Este projeto não inclui o SDL3 como submódulo. Você precisa cloná-lo manualmente dentro do projeto:
 
 ```bash
 git clone https://github.com/libsdl-org/SDL.git vendored/SDL
