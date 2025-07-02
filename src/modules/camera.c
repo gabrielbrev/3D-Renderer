@@ -124,7 +124,18 @@ Point projectPerspective(const Point *p, float f) {
     return proj;
 }
 
-void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *light) {
+bool renderFace(Camera *camera, const Point *a, const Point *b, const Point *c) {
+    Point centroid = getCentroid(a, b, c);
+    Vector normal = getNormal(a, b, c);
+
+    Vector direction = createVector(&camera->pos, &centroid);
+    direction = normalize(&direction);
+
+    float cos_theta = dot(&direction, &normal);
+    return (cos_theta > 0);
+}
+
+void renderObjects(Camera *camera, MeshList *mesh_list, LightSource *light) {
     float zbuffer[camera->width][camera->height];
     for (int i = 0; i < camera->width; i++) {
         for (int j = 0; j < camera->height; j++) {
@@ -137,18 +148,23 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
     SDL_LockTexture(camera->texture, NULL, &pixels, &pitch);
     Uint32* pixel_data = (Uint32*)pixels;
 
-    for (int mesh_idx = 0; mesh_idx < num_meshes; mesh_idx++) {
-        Mesh *mesh = meshes[mesh_idx];
+    for (int mesh_idx = 0; mesh_idx < mesh_list->num_meshes; mesh_idx++) {
+        Mesh *mesh = &mesh_list->meshes[mesh_idx];
         
         Point transformed_points[mesh->num_vertices];
         Point projected_points[mesh->num_vertices];
         
         for (int i = 0; i < mesh->num_vertices; i++) {
             Point p = mesh->vertices[i];
-            
+
             p = rotatePoint(&p, &(Vector){1, 0, 0}, mesh->angle_x);
             p = rotatePoint(&p, &(Vector){0, 1, 0}, mesh->angle_y);
             p = rotatePoint(&p, &(Vector){0, 0, 1}, mesh->angle_z);
+
+            p.x += mesh->pos.x;
+            p.y += mesh->pos.y;
+            p.z += mesh->pos.z;
+            
             transformed_points[i] = p;
             
             p = multiplyMatrixVector(camera->view_matrix, &p);
@@ -164,6 +180,13 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
                 Point *a = &projected_points[face.vertices[0]];
                 Point *b = &projected_points[face.vertices[1]];
                 Point *c = &projected_points[face.vertices[2]];
+
+                if (!renderFace(
+                    camera, 
+                    &transformed_points[face.vertices[0]], 
+                    &transformed_points[face.vertices[1]], 
+                    &transformed_points[face.vertices[2]]
+                )) continue;
                 
                 float light_intensity = getFaceLightIntensity(
                     light, 
@@ -175,10 +198,10 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
                 
                 // Rasterização
                 SDL_Rect boundingRect = getBoundingRect(a, b, c);
-                int minX = maxInt(0, boundingRect.x);
-                int minY = maxInt(0, boundingRect.y);
-                int maxX = minInt(camera->width, boundingRect.x + boundingRect.w);
-                int maxY = minInt(camera->height, boundingRect.y + boundingRect.h);
+                int minX = maxInt(0, boundingRect.x - 1);
+                int minY = maxInt(0, boundingRect.y - 1);
+                int maxX = minInt(camera->width, boundingRect.x + boundingRect.w + 1);
+                int maxY = minInt(camera->height, boundingRect.y + boundingRect.h + 1);
                 Uint32 color = HSVtoUint32(&face.color, light_intensity);
                 
                 for (int x = minX; x < maxX; x++) {

@@ -63,7 +63,7 @@ Vector normalize(const Vector *v) {
     float length = magnitude(v);
 
     if (length == 0) {
-        printf("Warning: trying to normalize null vector");
+        printf("Warning: trying to normalize null vector\n");
         return (Vector) {0, 0, 0};
     }
 

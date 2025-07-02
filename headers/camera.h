@@ -30,6 +30,6 @@ void initCamera(Camera *camera, SDL_Renderer *renderer, SDL_Window *window, cons
 void cycleCameraMode(Camera *camera);
 void moveCamera(Camera *camera, float dx, float dy, float dz);
 void rotateCamera(Camera *camera, float dx_degrees, float dy_degrees);
-void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *light);
+void renderObjects(Camera *camera, MeshList *mesh_list, LightSource *light);
 
 #endif
