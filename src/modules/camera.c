@@ -175,10 +175,10 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
                 
                 // Rasterização
                 SDL_Rect boundingRect = getBoundingRect(a, b, c);
-                int minX = maxInt(0, boundingRect.x);
-                int minY = maxInt(0, boundingRect.y);
-                int maxX = minInt(camera->width, boundingRect.x + boundingRect.w);
-                int maxY = minInt(camera->height, boundingRect.y + boundingRect.h);
+                int minX = maxInt(0, boundingRect.x - 1);
+                int minY = maxInt(0, boundingRect.y - 1);
+                int maxX = minInt(camera->width, boundingRect.x + boundingRect.w + 1);
+                int maxY = minInt(camera->height, boundingRect.y + boundingRect.h + 1);
                 Uint32 color = HSVtoUint32(&face.color, light_intensity);
                 
                 for (int x = minX; x < maxX; x++) {

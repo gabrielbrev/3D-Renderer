@@ -3,6 +3,7 @@
 
 #include "triangle.h"
 #include "vector.h"
+#include "surface.h"
 
 typedef struct {
     float ambient_reflectivity;
@@ -20,6 +21,6 @@ typedef struct {
     Material material;
 } Mesh;
 
-Mesh createMesh(Point *points, Triangle *faces, int num_points, int num_faces, Material material);
+Mesh createMesh(Point *points, Triangle *faces, Surface *surfaces, int num_points, int num_faces, int num_surfaces, Material material);
 
 #endif

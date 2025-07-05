@@ -18,3 +18,11 @@ int minInt(int a, int b) {
 int maxInt(int a, int b) {
     return a < b ? b : a;
 }
+
+int factorial(int n) {
+    return n > 0 ? n * factorial(n - 1) : 1;
+}
+
+int comb(int n, int i) {
+    return factorial(n) / (factorial(i) * factorial(n - i));
+}

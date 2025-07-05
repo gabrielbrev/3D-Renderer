@@ -6,5 +6,6 @@
 void multiplyMatrices4x4(float result[4][4], float a[4][4], float b[4][4]);
 int minInt(int a, int b);
 int maxInt(int a, int b);
+int comb(int n, int i);
 
 #endif
