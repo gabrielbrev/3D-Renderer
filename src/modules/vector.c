@@ -71,6 +71,14 @@ Vector normalize(const Vector *v) {
     return result;
 }
 
+Vector reflect(const Vector *incident, const Vector *normal) {
+    // R = I - 2 * (I · N) * N
+    float dot_product = dot(incident, normal);
+    Vector scaled_normal = scalarMultiply(2.0f * dot_product, normal);
+    Vector reflected = subtract(incident, &scaled_normal);
+    return reflected;
+}
+
 Vector multiplyMatrixVector(float m[4][4], const Vector *p) {
     Vector result;
     float x = p->x, y = p->y, z = p->z;

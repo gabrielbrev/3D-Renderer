@@ -10,12 +10,13 @@ typedef struct {
 } ColorHSV;
 
 typedef struct {
-    Uint8 r;
-    Uint8 b;
-    Uint8 g;
+    float r;
+    float g;
+    float b;
 } ColorRGB;
 
-ColorRGB HSVtoRGB(const ColorHSV *hsv, float intensity);
+ColorRGB HSVtoRGBFloat(const ColorHSV *hsv, float intensity);
 Uint32 HSVtoUint32(const ColorHSV *hsv, float intensity);
+Uint32 ColorRGBToUint32(const ColorRGB *color);
 
 #endif

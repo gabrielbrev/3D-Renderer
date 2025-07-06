@@ -2,14 +2,14 @@
 
 #include <math.h>
 
-ColorRGB HSVtoRGB(const ColorHSV *hsv, float intensity) {
+ColorRGB HSVtoRGBFloat(const ColorHSV *hsv, float intensity) {
     ColorRGB rgb;
     float h = hsv->h;
     float s = hsv->s;
     float v = hsv->v;
 
     if (s == 0.0f) {
-        rgb.r = rgb.g = rgb.b = (int)(v * 255 * intensity);
+        rgb.r = rgb.g = rgb.b = v * intensity;
         return rgb;
     }
 
@@ -34,15 +34,25 @@ ColorRGB HSVtoRGB(const ColorHSV *hsv, float intensity) {
         r = c; g = 0; b = x;
     }
 
-    rgb.r = (int)((r + m) * 255 * intensity);
-    rgb.g = (int)((g + m) * 255 * intensity);
-    rgb.b = (int)((b + m) * 255 * intensity);
+    rgb.r = (r + m) * intensity;
+    rgb.g = (g + m) * intensity;
+    rgb.b = (b + m) * intensity;
 
     return rgb;
 }
 
 Uint32 HSVtoUint32(const ColorHSV *hsv, float intensity) {
-    ColorRGB rgb = HSVtoRGB(hsv, intensity);
-    Uint32 color = (0xFF << 24) | (rgb.r << 16) | (rgb.g << 8) | rgb.b;
-    return color;
+    ColorRGB rgb = HSVtoRGBFloat(hsv, intensity);
+    Uint8 r = (Uint8)(rgb.r * 255.0f);
+    Uint8 g = (Uint8)(rgb.g * 255.0f);
+    Uint8 b = (Uint8)(rgb.b * 255.0f);
+    return (0xFF << 24) | (r << 16) | (g << 8) | b;
 }  
+
+Uint32 ColorRGBToUint32(const ColorRGB *color) {
+    Uint8 r = (Uint8)(color->r * 255.0f);
+    Uint8 g = (Uint8)(color->g * 255.0f);
+    Uint8 b = (Uint8)(color->b * 255.0f);
+    
+    return (0xFF << 24) | (r << 16) | (g << 8) | b;
+}

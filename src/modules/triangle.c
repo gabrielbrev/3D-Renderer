@@ -15,7 +15,7 @@ Vector getNormal(const Point *a, const Point *b, const Point *c) {
     Vector u = createVector(a, b);
     Vector v = createVector(a, c);
 
-    Vector normal = crossProduct(&v, &u);
+    Vector normal = crossProduct(&u, &v);
     return normalize(&normal);
 }
 

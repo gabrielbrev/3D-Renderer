@@ -8,6 +8,8 @@
 typedef struct {
     float ambient_reflectivity;
     float diffuse_reflectivity;
+    float specular_reflectivity;
+    float shininess;
 } Material;
 
 typedef struct {

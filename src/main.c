@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
             createSurface3x3(
                 (Point[3][3]){
                     { { 0.00 * 2, 3.00 * 2, 2.00 * 2 }, { 0.95 * 2, 3.00 * 2, 1.31 * 2 }, { 1.90 * 2, 3.00 * 2, 0.62 * 2 } },
-                    { { 0.00 * 2, 2.375 * 2, 2.75 * 2 }, { 1.7275 * 2, 3.075 * 2, 2.38 * 2 }, { 2.615 * 2, 2.375 * 2, 0.85 * 2 } },                    
+                    { { 0.00 * 2, 2.375 * 2, 2.75 * 2 }, { 2.2275 * 2, 3.575 * 2, 2.88 * 2 }, { 2.615 * 2, 2.375 * 2, 0.85 * 2 } },
                     { { 0.00 * 2, 1.75 * 2, 3.50 * 2 }, { 1.665 * 2, 1.75 * 2, 2.29 * 2 }, { 3.33 * 2, 1.75 * 2, 1.08 * 2 } }
                 },
                 (float[3][3]) {
@@ -86,11 +86,16 @@ int main(int argc, char* argv[]) {
                 color1
             )
         },
-        11, 16, 1, (Material) {0.4, 0.8});
+        11, 16, 1, (Material) {0.4, 0.8, 0.9, 32.0});
         
     Mesh *meshes[] = { &obj1 };
 
-    LightSource light = { {5, 7, 3}, 1.0f, 0.3f, 0.001f, 0.001f, 1.0f };
+    LightSource light = { 
+        {5, 7, 3}, 
+        1.0f, 0.3f, 1.0f, 
+        {1.0f, 1.0f, 0.6f}, 
+        0.001f, 0.001f, 1.0f 
+    };
 
     Camera camera;
     initCamera(&camera, renderer, window, &(Point) {10, 5, 0}, &(Point) {0, 0, 0}, &(Vector) {0, 1, 0});
@@ -171,13 +176,12 @@ int main(int argc, char* argv[]) {
         }
 
         // obj1.angle_y += OBJECT_ROTAION_SPEED * delta_time;
-        // obj2.angle_y -= OBJECT_ROTAION_SPEED * delta_time;
 
         light.pos.x = camera.pos.x;
         light.pos.y = camera.pos.y;
         light.pos.z = camera.pos.z;
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 224, 224, 224, 255);
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

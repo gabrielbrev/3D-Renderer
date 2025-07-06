@@ -165,12 +165,14 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
                 Point *b = &projected_points[face.vertices[1]];
                 Point *c = &projected_points[face.vertices[2]];
                 
-                float light_intensity = getFaceLightIntensity(
+                ColorRGB phong_color = getPhongColor(
                     light, 
                     &transformed_points[face.vertices[0]], 
                     &transformed_points[face.vertices[1]], 
                     &transformed_points[face.vertices[2]], 
-                    &mesh->material
+                    &camera->pos,
+                    &mesh->material,
+                    &face.color
                 );
                 
                 // Rasterização
@@ -179,7 +181,7 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
                 int minY = maxInt(0, boundingRect.y - 1);
                 int maxX = minInt(camera->width, boundingRect.x + boundingRect.w + 1);
                 int maxY = minInt(camera->height, boundingRect.y + boundingRect.h + 1);
-                Uint32 color = HSVtoUint32(&face.color, light_intensity);
+                Uint32 color = ColorRGBToUint32(&phong_color);
                 
                 for (int x = minX; x < maxX; x++) {
                     for (int y = minY; y < maxY; y++) {
@@ -212,7 +214,7 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
                 
                 break;
                 
-                case CAMERA_MODE_WIREFRAME:    
+                case CAMERA_MODE_WIREFRAME:  
                 for (int j = 0; j < 3; j++) {
                     Point p1 = projected_points[face.vertices[j]];
                     Point p2 = projected_points[face.vertices[(j + 1) % 3]];

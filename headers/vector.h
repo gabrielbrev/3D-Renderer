@@ -18,6 +18,7 @@ Vector scalarMultiply(float num, const Vector *v);
 Vector rejectFrom(const Vector *direction, const Vector *vector);
 Vector crossProduct(const Vector *a, const Vector *b);
 Vector normalize(const Vector *v);
+Vector reflect(const Vector *incident, const Vector *normal);
 Vector multiplyMatrixVector(float m[4][4], const Vector *p);
 
 #endif

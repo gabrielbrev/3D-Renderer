@@ -13,15 +13,12 @@ Mesh createMesh(
     int verts_per_surface = (surface_resolution + 1) * (surface_resolution + 1);
     int faces_per_surface = surface_resolution * surface_resolution * 2;
 
-    // Total geral
     int total_vertices = num_vertices + num_surfaces * verts_per_surface;
     int total_faces = num_faces + num_surfaces * faces_per_surface;
 
-    // Aloca arrays grandes para todos os vértices e faces
     Point *all_vertices = malloc(sizeof(Point) * total_vertices);
     Triangle *all_faces = malloc(sizeof(Triangle) * total_faces);
 
-    // Copia os vértices e faces originais
     for (int i = 0; i < num_vertices; i++) {
         all_vertices[i] = vertices[i];
     }
@@ -29,15 +26,12 @@ Mesh createMesh(
         all_faces[i] = faces[i];
     }
 
-    // Offset para novos vértices e faces
     int vertex_offset = num_vertices;
     int face_offset = num_faces;
 
-    // Para cada superfície
     for (int s = 0; s < num_surfaces; s++) {
         Surface *surf = &surfaces[s];
 
-        // Avalia a superfície numa grade (s, t)
         Point grid[surface_resolution+1][surface_resolution+1];
 
         for (int i = 0; i <= surface_resolution; i++) {
@@ -49,7 +43,6 @@ Mesh createMesh(
             }
         }
 
-        // Gera triângulos da grade
         for (int i = 0; i < surface_resolution; i++) {
             for (int j = 0; j < surface_resolution; j++) {
                 int idx0 = vertex_offset + i * (surface_resolution+1) + j;
