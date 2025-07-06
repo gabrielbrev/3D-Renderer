@@ -7,8 +7,8 @@
 
 #include <SDL3/SDL.h>
 
-extern const int CAMERA_MODE_FILL;
-extern const int CAMERA_MODE_WIREFRAME;
+#define CAMERA_MODE_FILL 0
+#define CAMERA_MODE_WIREFRAME 1
 
 typedef struct {
     Point pos;

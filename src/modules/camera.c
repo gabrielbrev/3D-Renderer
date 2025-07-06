@@ -7,9 +7,7 @@
 #include "light_source.h"
 
 #include <math.h>
-
-const int CAMERA_MODE_FILL = 0;
-const int CAMERA_MODE_WIREFRAME = 1;
+#include <stdlib.h>
 
 void updateViewMatrix(Camera *camera) {
     float translation_matrix[4][4] = {
@@ -125,8 +123,9 @@ Point projectPerspective(const Point *p, float f) {
 }
 
 void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *light) {
-    float zbuffer[camera->width][camera->height];
+    float **zbuffer = malloc(camera->width * sizeof(float*));
     for (int i = 0; i < camera->width; i++) {
+        zbuffer[i] = malloc(camera->height * sizeof(float));
         for (int j = 0; j < camera->height; j++) {
             zbuffer[i][j] = INFINITY;
         }
@@ -137,11 +136,15 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
     SDL_LockTexture(camera->texture, NULL, &pixels, &pitch);
     Uint32* pixel_data = (Uint32*)pixels;
 
+    
+    // Limpar a textura inteira
+    memset(pixel_data, 0, camera->width * camera->height * sizeof(Uint32));
+
     for (int mesh_idx = 0; mesh_idx < num_meshes; mesh_idx++) {
         Mesh *mesh = meshes[mesh_idx];
         
-        Point transformed_points[mesh->num_vertices];
-        Point projected_points[mesh->num_vertices];
+        Point *transformed_points = malloc(mesh->num_vertices * sizeof(Point));
+        Point *projected_points = malloc(mesh->num_vertices * sizeof(Point));
         
         for (int i = 0; i < mesh->num_vertices; i++) {
             Point p = mesh->vertices[i];
@@ -224,7 +227,15 @@ void renderObjects(Camera *camera, Mesh **meshes, int num_meshes, LightSource *l
                 break;
             }    
         }
+        
+        free(transformed_points);
+        free(projected_points);
     }
+    
+    for (int i = 0; i < camera->width; i++) {
+        free(zbuffer[i]);
+    }
+    free(zbuffer);
     
     SDL_UnlockTexture(camera->texture);
     SDL_RenderTexture(camera->renderer, camera->texture, NULL, NULL);

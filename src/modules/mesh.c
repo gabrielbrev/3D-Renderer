@@ -32,7 +32,11 @@ Mesh createMesh(
     for (int s = 0; s < num_surfaces; s++) {
         Surface *surf = &surfaces[s];
 
-        Point grid[surface_resolution+1][surface_resolution+1];
+        // Allocate grid dynamically
+        Point **grid = malloc((surface_resolution + 1) * sizeof(Point*));
+        for (int i = 0; i <= surface_resolution; i++) {
+            grid[i] = malloc((surface_resolution + 1) * sizeof(Point));
+        }
 
         for (int i = 0; i <= surface_resolution; i++) {
             float u = (float)i / surface_resolution; 
@@ -54,6 +58,12 @@ Mesh createMesh(
                 all_faces[face_offset++] = (Triangle){{idx1, idx3, idx2}, surf->color};
             }
         }
+
+        // Free the grid after use
+        for (int i = 0; i <= surface_resolution; i++) {
+            free(grid[i]);
+        }
+        free(grid);
 
         vertex_offset += verts_per_surface;
     }

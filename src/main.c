@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
         light.pos.y = camera.pos.y;
         light.pos.z = camera.pos.z;
 
-        SDL_SetRenderDrawColor(renderer, 224, 224, 224, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

@@ -17,7 +17,7 @@ include_directories(headers)
 file(GLOB MODULE_SOURCES CONFIGURE_DEPENDS src/modules/*.c)
 
 # Main executable
-add_executable(main WIN32 src/main.c ${MODULE_SOURCES})
+add_executable(main src/main.c ${MODULE_SOURCES})
 
 # Link SDL
 target_link_libraries(main PRIVATE SDL3::SDL3)
